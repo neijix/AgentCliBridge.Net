@@ -1,5 +1,9 @@
 # D3sk.AgentCli
 
+> **Moved to [AgentCliBridge](https://github.com/neijix/AgentCliBridge)** (its `main`, merged at
+> this repo's `61b866f` on 2026-11-04). This repo is read-only and will be archived; open
+> issues and changes there.
+
 The .NET port of [AgentCliBridge](https://github.com/neijix/AgentCliBridge): runs the AI coding
 CLIs (Claude Code, Cursor, Gemini, Copilot, Grok, OpenCode) and folds their output streams into
 typed events. Package `D3sk.AgentCli`, used by D3SKHAND.
