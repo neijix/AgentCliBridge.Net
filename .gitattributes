@@ -1,0 +1,4 @@
+# The frozen fixtures are compared byte for byte: no line-ending conversion.
+tests/streams/** -text
+tests/wire/** -text
+tests/frozen-manifest.txt text eol=lf

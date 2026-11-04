@@ -1,0 +1,27 @@
+name: publish
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - run: dotnet test D3sk.AgentCli.slnx -c Release
+      - name: Pack
+        run: dotnet pack src/D3sk.AgentCli -c Release -o artifacts -p:Version=${GITHUB_REF_NAME#v}
+      - name: Push to GitHub Packages
+        run: >
+          dotnet nuget push "artifacts/*.nupkg"
+          --source https://nuget.pkg.github.com/neijix/index.json
+          --api-key "${{ secrets.GITHUB_TOKEN }}"
+          --skip-duplicate
