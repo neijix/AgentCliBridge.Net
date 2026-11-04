@@ -2,3 +2,4 @@
 tests/streams/** -text
 tests/wire/** -text
 tests/frozen-manifest.txt text eol=lf
+tests/fixtures/** -text
