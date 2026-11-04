@@ -1,18 +1,22 @@
+using D3sk.AgentCli.Catalog;
 using D3sk.AgentCli.Ranking;
 
 namespace D3sk.AgentCli.Tests.Ranking;
 
 public class NamesAndTagsTests
 {
+    private static CatalogAgent Agent(string command, string? flavor = null, string? name = null, string? kind = null, bool prices = false) =>
+        new(command, flavor ?? command, [], Name: name, AccountKind: kind, HasPrices: prices);
+
     [Fact]
     public void Agent_names()
     {
         Assert.Equal("", ModelNames.AgentDisplayName(null));
-        Assert.Equal("Open Router", ModelNames.AgentDisplayName(new("opencode", "OpenCode")));
-        Assert.Equal("Claude Code (work)", ModelNames.AgentDisplayName(new("claude", "Claude Code", "work")));
-        Assert.Equal("Claude Code (personal)", ModelNames.AgentDisplayName(new("claude", "Claude Code", "personal")));
-        Assert.Equal("Claude Code", ModelNames.AgentDisplayName(new("claude", "Claude Code", "other")));
-        Assert.Equal("grok", ModelNames.AgentDisplayName(new("grok", null)));
+        Assert.Equal("Open Router", ModelNames.AgentDisplayName(Agent("opencode", name: "OpenCode")));
+        Assert.Equal("Claude Code (work)", ModelNames.AgentDisplayName(Agent("claude", name: "Claude Code", kind: "work")));
+        Assert.Equal("Claude Code (personal)", ModelNames.AgentDisplayName(Agent("claude", name: "Claude Code", kind: "personal")));
+        Assert.Equal("Claude Code", ModelNames.AgentDisplayName(Agent("claude", name: "Claude Code", kind: "other")));
+        Assert.Equal("grok", ModelNames.AgentDisplayName(Agent("grok")));
         Assert.Equal("claude::opus", ModelNames.ModelKey("claude", "opus"));
     }
 
@@ -44,22 +48,22 @@ public class NamesAndTagsTests
     public void Free_needs_a_promo_id_or_a_zero_priced_zen_model()
     {
         Assert.True(ModelTags.IsFree("opencode/big-pickle", null));
-        Assert.True(ModelTags.IsFree("opencode/big-pickle", new(0, 0)));
-        Assert.False(ModelTags.IsFree("opencode/paid", new(1, 2)));
-        Assert.False(ModelTags.IsFree("openrouter/openrouter/auto", new(0, 0)));
-        Assert.True(ModelTags.IsFree("a:free", new(5, 5)));
+        Assert.True(ModelTags.IsFree("opencode/big-pickle", [0, 0]));
+        Assert.False(ModelTags.IsFree("opencode/paid", [1, 2]));
+        Assert.False(ModelTags.IsFree("openrouter/openrouter/auto", [0, 0]));
+        Assert.True(ModelTags.IsFree("a:free", [5, 5]));
     }
 
     [Fact]
     public void Agents()
     {
-        Assert.True(ModelTags.IsLocalAgent(new("mlx", null, false)));
-        Assert.True(ModelTags.IsLocalAgent(new(null, "mlx", false)));
-        Assert.False(ModelTags.IsLocalAgent(new("colibri", "colibri", false)));
-        Assert.True(ModelTags.IsPricedAgent(new("opencode", "opencode", false)));
-        Assert.True(ModelTags.IsPricedAgent(new("claude", "claude", true)));
-        Assert.False(ModelTags.IsPricedAgent(new("claude", "claude", false)));
-        Assert.False(ModelTags.IsPricedAgent(new("mlx", "mlx", true)));
+        Assert.True(ModelTags.IsLocalAgent(Agent("", "mlx")));
+        Assert.True(ModelTags.IsLocalAgent(Agent("mlx")));
+        Assert.False(ModelTags.IsLocalAgent(Agent("colibri", "colibri")));
+        Assert.True(ModelTags.IsPricedAgent(Agent("opencode", "opencode")));
+        Assert.True(ModelTags.IsPricedAgent(Agent("claude", "claude", prices: true)));
+        Assert.False(ModelTags.IsPricedAgent(Agent("claude", "claude")));
+        Assert.False(ModelTags.IsPricedAgent(Agent("mlx", "mlx", prices: true)));
         Assert.False(ModelTags.IsPricedAgent(null));
     }
 
@@ -80,11 +84,11 @@ public class NamesAndTagsTests
         Assert.Equal(new PriceNote("Local", "Runs on this computer, no token charge", true), ModelTags.PriceNote("m", null, true, true));
         Assert.Equal(new PriceNote("Plan", "Included in your subscription", false), ModelTags.PriceNote("m", null, false));
         Assert.Equal(new PriceNote("Free", "No cost per token", true), ModelTags.PriceNote("x:free", null));
-        var router = ModelTags.PriceNote("openrouter/openrouter/auto", new(0, 0));
+        var router = ModelTags.PriceNote("openrouter/openrouter/auto", [0, 0]);
         Assert.Equal("—", router.Text);
         Assert.False(router.IsFree);
         Assert.Equal("—", ModelTags.PriceNote("openrouter/m", null).Text);
-        var paid = ModelTags.PriceNote("openrouter/m", new(3, 15));
+        var paid = ModelTags.PriceNote("openrouter/m", [3, 15]);
         Assert.Equal("$3.00 / $15.00", paid.Text);
         Assert.Equal("USD per million tokens — input $3.00, output $15.00", paid.Title);
     }

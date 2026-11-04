@@ -10,7 +10,18 @@ namespace D3sk.AgentCli.Catalog;
 /// <param name="Models">The curated list (specs, or the host's configured models).</param>
 /// <param name="BinaryFound">Whether the binary is installed.</param>
 /// <param name="Path">The binary's full path, when known.</param>
-public sealed record CatalogAgent(string Command, string Flavor, IReadOnlyList<string> Models, bool BinaryFound = true, string? Path = null);
+/// <param name="Name">The display name (ranking falls back to <paramref name="Command"/>).</param>
+/// <param name="AccountKind"><c>personal</c> or <c>work</c> for Claude Code; anything else reads as none.</param>
+/// <param name="HasPrices">Whether its models carry prices (a company gateway behind Claude Code).</param>
+public sealed record CatalogAgent(
+    string Command,
+    string Flavor,
+    IReadOnlyList<string> Models,
+    bool BinaryFound = true,
+    string? Path = null,
+    string? Name = null,
+    string? AccountKind = null,
+    bool HasPrices = false);
 
 /// <summary>One agent's merged list: curated plus what the CLI offers now. Ranking is not part of it.</summary>
 /// <param name="Models">What to show, optional ones last.</param>

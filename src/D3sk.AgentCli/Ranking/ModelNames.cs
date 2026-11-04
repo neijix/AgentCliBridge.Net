@@ -1,7 +1,6 @@
-namespace D3sk.AgentCli.Ranking;
+using D3sk.AgentCli.Catalog;
 
-/// <summary>What a name needs of an agent: its CLI command, display name and account kind (<c>personal</c> or <c>work</c>).</summary>
-public sealed record AgentNameInfo(string? Command, string? Name, string? AccountKind = null);
+namespace D3sk.AgentCli.Ranking;
 
 /// <summary>The names a CLI and a model show under. The id sent to the CLI is never changed.</summary>
 public static class ModelNames
@@ -12,7 +11,7 @@ public static class ModelNames
     public static string ModelKey(string command, string model) => $"{command}{Separator}{model}";
 
     /// <summary>The CLI is still <c>opencode</c>, the UI says Open Router. Claude on a personal subscription and through a company gateway read apart.</summary>
-    public static string AgentDisplayName(AgentNameInfo? agent)
+    public static string AgentDisplayName(CatalogAgent? agent)
     {
         if (agent is null)
         {
@@ -24,7 +23,7 @@ public static class ModelNames
             return "Open Router";
         }
 
-        var name = !string.IsNullOrEmpty(agent.Name) ? agent.Name : agent.Command ?? "";
+        var name = !string.IsNullOrEmpty(agent.Name) ? agent.Name : agent.Command;
         return agent.AccountKind is "personal" or "work" ? $"{name} ({agent.AccountKind})" : name;
     }
 

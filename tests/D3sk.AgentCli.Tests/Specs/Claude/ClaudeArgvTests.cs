@@ -1,3 +1,4 @@
+using D3sk.AgentCli.Catalog;
 using D3sk.AgentCli.Specs.Claude;
 
 namespace D3sk.AgentCli.Tests.Specs.Claude;
@@ -185,7 +186,7 @@ public class ClaudeArgvTests
     [InlineData("opus", "bogus", null)]
     public void Effort_is_clamped_per_model(string model, string effort, string? expected)
     {
-        var args = ClaudeEffort.Args(effort, false, model);
+        var args = Effort.Args("claude", effort, false, model);
         if (expected is null) Assert.Empty(args);
         else Assert.Equal(["--effort", expected], args);
     }
@@ -193,9 +194,9 @@ public class ClaudeArgvTests
     [Fact]
     public void Ultracode_goes_through_settings_except_on_haiku_and_old_models()
     {
-        Assert.Equal(["--settings", "{\"ultracode\":true}"], ClaudeEffort.Args(null, true, "opus"));
-        Assert.Empty(ClaudeEffort.Args(null, true, "haiku"));
-        Assert.Empty(ClaudeEffort.Args(null, true, "claude-3-5-sonnet-20241022"));
+        Assert.Equal(["--settings", "{\"ultracode\":true}"], Effort.Args("claude", null, true, "opus"));
+        Assert.Empty(Effort.Args("claude", null, true, "haiku"));
+        Assert.Empty(Effort.Args("claude", null, true, "claude-3-5-sonnet-20241022"));
     }
 
     [Fact]

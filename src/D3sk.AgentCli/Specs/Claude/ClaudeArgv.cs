@@ -1,3 +1,4 @@
+using D3sk.AgentCli.Catalog;
 namespace D3sk.AgentCli.Specs.Claude;
 
 /// <summary>One Claude turn's inputs to <see cref="ClaudeArgv.Build"/>.</summary>
@@ -174,7 +175,7 @@ public static class ClaudeArgv
         argv.AddRange(PermissionArgs(r.PermissionMode));
         argv.AddRange(AllowedToolsArgs(mode, r.AllowedTools, r.LiveInput));
         argv.AddRange(["--disallowedTools", string.Join(',', TokenFileDenials(r.BridgeHome))]);
-        argv.AddRange(ClaudeEffort.Args(r.Effort, r.Ultracode, r.Model));
+        argv.AddRange(Effort.Args("claude", r.Effort, r.Ultracode, r.Model));
         if (!r.AllowSudo) argv.AddRange(["--disallowedTools", string.Join(',', SudoDenied)]);
         argv.AddRange(r.CliArgs);
         // Last, after "--", so a prompt starting with "-" is never read as a flag.

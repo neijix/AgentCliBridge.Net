@@ -1,12 +1,7 @@
 using System.Globalization;
+using D3sk.AgentCli.Catalog;
 
 namespace D3sk.AgentCli.Ranking;
-
-/// <summary>USD per million tokens.</summary>
-public readonly record struct ModelPrice(double Input, double Output);
-
-/// <summary>What the tags need of an agent. Colibri is gone: <c>mlx</c> is the only local flavor.</summary>
-public sealed record AgentTraits(string? Flavor, string? Command, bool HasPrices);
 
 /// <summary>The Price cell: text, hover title and whether the model costs nothing.</summary>
 public readonly record struct PriceNote(string Text, string Title, bool IsFree);
@@ -26,15 +21,15 @@ public static class ModelTags
             || LastSegment(text).EndsWith("-free", StringComparison.Ordinal);
     }
 
-    /// <summary>Local models run by the host itself: MLX weights already downloaded.</summary>
-    public static bool IsLocalAgent(AgentTraits? agent) => agent?.Flavor == "mlx" || agent?.Command == "mlx";
+    /// <summary>Local models run by the host itself (<c>mlx</c> is the only local flavor): MLX weights already downloaded.</summary>
+    public static bool IsLocalAgent(CatalogAgent? agent) => agent?.Flavor == "mlx" || agent?.Command == "mlx";
 
     /// <summary>OpenCode prices its models, and so does a company gateway Claude Code goes through; the other CLIs run on a subscription.</summary>
-    public static bool IsPricedAgent(AgentTraits? agent) =>
+    public static bool IsPricedAgent(CatalogAgent? agent) =>
         agent is not null && !IsLocalAgent(agent) && (agent.Flavor == "opencode" || agent.HasPrices);
 
     /// <summary>Free = an Open Router promo id, or an OpenCode Zen model at no cost. A price of zero alone is not: routers bill the model they pick.</summary>
-    public static bool IsFree(string? id, ModelPrice? price)
+    public static bool IsFree(string? id, IReadOnlyList<double>? price)
     {
         if (IsLimitedFree(id))
         {
@@ -68,8 +63,8 @@ public static class ModelTags
         return "$" + rounded.ToString("0.############################", CultureInfo.InvariantCulture);
     }
 
-    /// <summary>The Price cell of a model. <paramref name="isPriced"/> false = a subscription CLI.</summary>
-    public static PriceNote PriceNote(string? id, ModelPrice? price, bool isPriced = true, bool isLocal = false)
+    /// <summary>The Price cell of a model; <paramref name="price"/> is the catalog's [input, output] pair. <paramref name="isPriced"/> false = a subscription CLI.</summary>
+    public static PriceNote PriceNote(string? id, IReadOnlyList<double>? price, bool isPriced = true, bool isLocal = false)
     {
         if (isLocal)
         {
@@ -86,13 +81,13 @@ public static class ModelTags
             return new PriceNote("Free", "No cost per token", true);
         }
 
-        if (price is not { } p || IsZero(p))
+        if (IsZero(price))
         {
             return new PriceNote("—", "No fixed price (a router bills the model it picks)", false);
         }
 
-        var input = FormatUsd(p.Input);
-        var output = FormatUsd(p.Output);
+        var input = FormatUsd(price![0]);
+        var output = FormatUsd(price[1]);
         return new PriceNote($"{input} / {output}", $"USD per million tokens — input {input}, output {output}", false);
     }
 
@@ -138,7 +133,7 @@ public static class ModelTags
         return new TagNote("graduated", "Graduated — this model has been on the Artificial Analysis Intelligence Index for a while, not a lab preview.");
     }
 
-    private static bool IsZero(ModelPrice? price) => price is not { } p || (p.Input == 0 && p.Output == 0);
+    private static bool IsZero(IReadOnlyList<double>? price) => price is not { Count: >= 2 } p || (p[0] == 0 && p[1] == 0);
 
     private static string LastSegment(string text) => text[(text.LastIndexOf('/') + 1)..];
 }
